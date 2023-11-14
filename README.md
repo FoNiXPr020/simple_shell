@@ -50,3 +50,6 @@ Your shell will be compiled using the following command:
 ```bash
 gcc -Wall -Werror -Wextra -pedantic -std=gnu89 *.c -o hsh
 
+## Authors
+
+- [Mohamed Barhoun](https://github.com/FoNiXPr020)
