@@ -49,6 +49,7 @@ Upon completion of this project, you should be able to:
 Your shell will be compiled using the following command:
 ```bash
 gcc -Wall -Werror -Wextra -pedantic -std=gnu89 *.c -o hsh
+```
 
 ## Authors
 
