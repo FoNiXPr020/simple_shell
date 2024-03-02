@@ -1,3 +1,5 @@
+![](https://s3.amazonaws.com/intranet-projects-files/holbertonschool-low_level_programming/235/shell.jpeg)
+
 # Simple Shell Project
 
 ## Overview
@@ -41,9 +43,6 @@ Upon completion of this project, you should be able to:
 ### Output
 - Ensure your program produces the same output as `/bin/sh` and the same error output.
 - When printing an error, the program name must be equivalent to `argv[0]`.
-
-### List of Allowed Functions and System Calls
-`access`, `chdir`, `close`, `closedir`, `execve`, `exit`, `_exit`, `fflush`, `fork`, `free`, `getcwd`, `getline`, `getpid`, `isatty`, `kill`, `malloc`, `open`, `opendir`, `perror`, `read`, `readdir`, `signal`, `stat` (`__xstat`), `lstat` (`__lxstat`), `fstat` (`__fxstat`), `strtok`, `wait`, `waitpid`, `wait3`, `wait4`, `write`.
 
 ## Compilation
 Your shell will be compiled using the following command:
