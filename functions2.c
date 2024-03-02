@@ -1,87 +1,118 @@
-#include "main.h"
+#include "shell.h"
 
 /**
- * _print_error - Display an error message on stderr.
- * @str1: Name of the shell program
- * @str2: Error message to display
- * Return: None
+ * determine_list_length - Determine the length of a linked list.
+ * @h: Pointer to the first node.
+ * Return: Size of the list.
  */
-void _print_error(const char *str1, const char *str2)
+size_t determine_list_length(const list_t *h)
 {
-	if (!str1 || !str2)
-		return;
+	size_t i = 0;
 
-	while (*str1)
+	while (h)
 	{
-		write(STDERR_FILENO, str1, 1);
-		str1++;
+		h = h->next;
+		i++;
 	}
-
-	write(STDERR_FILENO, ": ", 2);
-
-	while (*str2)
-	{
-		write(STDERR_FILENO, str2, 1);
-		str2++;
-	}
-	write(STDERR_FILENO, "\n", 1);
+	return (i);
 }
 
-
 /**
- * _trim_string - Remove leading and trailing spaces and tabs from a string.
- * @str: Input string
- * Return: None
+ * convert_list_to_strings - Convert a linked list to an array of strings.
+ * @head: Pointer to the first node.
+ * Return: Array of strings.
  */
-
-void _trim_string(char *str)
+char **convert_list_to_strings(list_t *head)
 {
-	int i, j, iLen = _string_len(str);
+	list_t *iNode = head;
+	size_t i = determine_list_length(head), j;
+	char **strs;
+	char *str;
 
-	for (i = 0; i < iLen && (str[i] == ' ' || str[i] == '\t'); i++)
-		;
-
-	for (j = 0; i < iLen ; i++, j++)
-		str[j] = str[i];
-
-	str[j] = '\0';
-
-	for (i = _string_len(str) - 1; i > 0
-	&& (str[i] == ' ' || str[i] == '\t'); i--)
-		str[i] = '\0';
-}
-
-
-/**
- * _realloc - Reallocate memory using malloc and free.
- * @ptr: Void pointer
- * @new_size: New size of memory block (unsigned integer)
- * Return: Newly allocated memory
- */
-void *_realloc(void *ptr, unsigned int new_size)
-{
-	char *p;
-	unsigned int i, tp = new_size, old_size = sizeof(ptr);
-
-	if (old_size == new_size)
-		return (ptr);
-	if (ptr == NULL)
-		return (malloc(new_size));
-
-	if (new_size > old_size)
-		tp = old_size;
-
-	if (new_size == 0)
-	{
-		free(ptr);
+	if (!head || !i)
 		return (NULL);
+	strs = malloc(sizeof(char *) * (i + 1));
+	if (!strs)
+		return (NULL);
+	for (i = 0; iNode; iNode = iNode->next, i++)
+	{
+		str = malloc(_string_length(iNode->str) + 1);
+		if (!str)
+		{
+			for (j = 0; j < i; j++)
+				free(strs[j]);
+			free(strs);
+			return (NULL);
+		}
+
+		str = _strcpy(str, iNode->str);
+		strs[i] = str;
 	}
+	strs[i] = NULL;
+	return (strs);
+}
 
-	p = malloc(new_size);
+/**
+ * display_list - Print all elements of a list_t linked list.
+ * @h: Pointer to the first node.
+ * Return: Size of the list.
+ */
+size_t display_list(const list_t *h)
+{
+	size_t i = 0;
 
-	for (i = 0; i < tp; i++)
-		p[i] = ((char *)ptr)[i];
-	free(ptr);
-	return (p);
+	while (h)
+	{
+		_puts(number_conversion(h->num, 10, 0));
+		_putchar(':');
+		_putchar(' ');
+		_puts(h->str ? h->str : "(nil)");
+		_puts("\n");
+		h = h->next;
+		i++;
+	}
+	return (i);
+}
+
+/**
+ * find_node_with_prefix - Return the node
+ * whose string starts with a given prefix.
+ * @node: Pointer to the list head.
+ * @prefix: String to match.
+ * @c: The next character after prefix to match.
+ * Return: Matching node or NULL.
+ */
+list_t *find_node_with_prefix(list_t *node, char *prefix, char c)
+{
+	char *p = NULL;
+
+	while (node)
+	{
+		p = check_prefix(node->str, prefix);
+		if (p && ((c == -1) || (*p == c)))
+			return (node);
+		node = node->next;
+	}
+	return (NULL);
+}
+
+/**
+ * obtain_node_index - Obtain the index of a node.
+ * @head: Pointer to the list head.
+ * @node: Pointer to the node.
+ * Return: Index of the node or -1.
+ */
+ssize_t obtain_node_index(list_t *head, list_t *node)
+{
+	size_t i = 0;
+
+	while (head)
+	{
+		if (head == node)
+			return (i);
+		head = head->next;
+		i++;
+	}
+	return (-1);
 }
 

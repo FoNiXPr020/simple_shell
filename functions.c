@@ -1,132 +1,155 @@
-#include "main.h"
+#include "shell.h"
 
 /**
- * _printf - Display a string to the standard output.
- * @str: Input string
- * Return: None
+ * prepend_node - Add a node to the start of the list.
+ * @head: Address of pointer to the head node.
+ * @str: String field of the node.
+ * @num: Node index used by history.
+ * Return: Size of the list.
  */
-void _printf(const char *str)
+list_t *prepend_node(list_t **head, const char *str, int num)
 {
-	if (!str)
-		return;
-	while (*str)
+	list_t *iNew;
+
+	if (!head)
+		return (NULL);
+	iNew = malloc(sizeof(list_t));
+	if (!iNew)
+		return (NULL);
+	_fill_memory((void *)iNew, 0, sizeof(list_t));
+	iNew->num = num;
+	if (str)
 	{
-		write(STDOUT_FILENO, str, 1);
-		str++;
-	}
-}
-
-/**
- * release_pointers - Deallocate memory used by an array of pointers.
- * @array: Array of pointers
- * Return: None
- */
-void release_pointers(char **array)
-{
-	int i;
-
-	if (!array)
-		return;
-
-	for (i = 0; array[i]; i++)
-	{
-		free(array[i]);
-		array[i] = NULL;
-	}
-
-	free(array);
-}
-
-/**
- * parse_string - Split a given string by a specified delimiter.
- * @d: Input data structure
- * @delim: Delimiter string
- * Return: None
- */
-void parse_string(data *d, const char *delim)
-{
-	char *iToken;
-	int i = 0;
-
-	d->vr_arry = malloc(2 * sizeof(char *));
-	if (d->vr_arry == NULL)
-	{
-		free(d->cmd);
-		perror(d->shell_name);
-		exit(EXIT_FAILURE);
-	}
-	d->vr_arry[0] = NULL;
-	d->vr_arry[1] = NULL;
-
-	iToken = strtok(d->cmd, delim);
-	while (iToken)
-	{
-		d->vr_arry = realloc(d->vr_arry, (i + 2) * sizeof(char *));
-		if (d->vr_arry == NULL)
-			goto free;
-		d->vr_arry[i] = _string_dupli(iToken);
-		if (d->vr_arry[i] == NULL)
-			goto free;
-		i++;
-		iToken = strtok(NULL, delim);
-	}
-	d->vr_arry[i] = NULL;
-	return;
-free:
-	release_pointers(d->vr_arry);
-	free(d->cmd);
-	perror(d->shell_name);
-	exit(EXIT_FAILURE);
-}
-
-/**
- * initialize_data - Initialize data structures.
- * @d: Input data structure
- * @shell_name: Name of the shell
- * Return: None
- */
-
-void initialize_data(data *d, const char *shell_name)
-{
-	d->cmd = NULL;
-	d->vr_arry = NULL;
-	d->shell_name = shell_name;
-	d->last_exit_status = EXIT_SUCCESS;
-	d->flag_setenv = 0;
-}
-
-/**
- * retrieve_command - Obtain the command from
- * the prompt and structure it into a data structure.
- * @d: Input data structure
- * Return: None
- */
-void retrieve_command(data *d)
-{
-	size_t n = 0;
-	ssize_t iRead;
-	int i = 0;
-
-	iRead = _custom_getline(&d->cmd, &n, stdin);
-
-	if (iRead == -1)
-	{
-		free(d->cmd);
-		_printf("\n");
-		exit(EXIT_SUCCESS);
-	}
-
-	d->cmd[iRead - 1] = '\0';
-	_trim_string(d->cmd);
-
-	for (i = 0; d->cmd[i] != '\0'; i++)
-	{
-		if (d->cmd[0] == '#' || (d->cmd[i] == '#' && d->cmd[i - 1] == ' '))
+		iNew->str = _strdup(str);
+		if (!iNew->str)
 		{
-			d->cmd[i] = '\0';
-			break;
+			free(iNew);
+			return (NULL);
 		}
 	}
-	_trim_string(d->cmd);
+	iNew->next = *head;
+	*head = iNew;
+	return (iNew);
+}
+
+/**
+ * append_node - Add a node to the end of the list.
+ * @head: Address of pointer to the head node.
+ * @str: String field of the node.
+ * @num: Node index used by history.
+ * Return: Size of the list.
+ */
+list_t *append_node(list_t **head, const char *str, int num)
+{
+	list_t *new_node, *iNode;
+
+	if (!head)
+		return (NULL);
+
+	iNode = *head;
+	new_node = malloc(sizeof(list_t));
+	if (!new_node)
+		return (NULL);
+	_fill_memory((void *)new_node, 0, sizeof(list_t));
+	new_node->num = num;
+	if (str)
+	{
+		new_node->str = _strdup(str);
+		if (!new_node->str)
+		{
+			free(new_node);
+			return (NULL);
+		}
+	}
+	if (iNode)
+	{
+		while (iNode->next)
+			iNode = iNode->next;
+		iNode->next = new_node;
+	}
+	else
+		*head = new_node;
+	return (new_node);
+}
+
+/**
+ * print_string_list - Print only the string element of a list_t linked list.
+ * @h: Pointer to the first node.
+ * Return: Size of the list.
+ */
+size_t print_string_list(const list_t *h)
+{
+	size_t i = 0;
+
+	while (h)
+	{
+		_puts(h->str ? h->str : "(nil)");
+		_puts("\n");
+		h = h->next;
+		i++;
+	}
+	return (i);
+}
+
+/**
+ * remove_node_at_index - Delete a node at the given index.
+ * @head: Address of pointer to the first node.
+ * @index: Index of the node to delete.
+ * Return: 1 on success, 0 on failure.
+ */
+int remove_node_at_index(list_t **head, unsigned int index)
+{
+	list_t *iNode, *prev_node;
+	unsigned int i = 0;
+
+	if (!head || !*head)
+		return (0);
+
+	if (!index)
+	{
+		iNode = *head;
+		*head = (*head)->next;
+		free(iNode->str);
+		free(iNode);
+		return (1);
+	}
+	iNode = *head;
+	while (iNode)
+	{
+		if (i == index)
+		{
+			prev_node->next = iNode->next;
+			free(iNode->str);
+			free(iNode);
+			return (1);
+		}
+		i++;
+		prev_node = iNode;
+		iNode = iNode->next;
+	}
+	return (0);
+}
+
+/**
+ * deallocate_list - Free all nodes of a list.
+ * @head_ptr: Address of pointer to the head node.
+ * Return: Void.
+ */
+void deallocate_list(list_t **head_ptr)
+{
+	list_t *iNode, *next_iNode, *ihead;
+
+	if (!head_ptr || !*head_ptr)
+		return;
+	ihead = *head_ptr;
+	iNode = ihead;
+	while (iNode)
+	{
+		next_iNode = iNode->next;
+		free(iNode->str);
+		free(iNode);
+		iNode = next_iNode;
+	}
+	*head_ptr = NULL;
 }
 
